@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp /c/Users/hbeignon/Desktop/planjupi/assets/2k_jupiter.jpg /c/Users/hbeignon/Desktop/planjupi/assets/jupiter_source.jpg)",
+      "Bash(mkdir -p /c/Users/hbeignon/Desktop/planjupi/public/textures /c/Users/hbeignon/Desktop/planjupi/public/images/projects)",
+      "Bash(cp /c/Users/hbeignon/Desktop/planjupi/assets/2k_jupiter.jpg /c/Users/hbeignon/Desktop/planjupi/public/textures/jupiter.jpg)",
+      "Bash(npm install *)",
+      "Bash(npx next *)",
+      "Bash(grep -v \"^[0-9]*:  *'//\")",
+      "Bash(npx tsc *)",
+      "Bash(xargs grep *)",
+      "Bash(find \"C:\\\\Users\\\\hbeignon\\\\Desktop\\\\planjupi\\\\src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec wc -l {} +)",
+      "Bash(xargs -0 grep -l \"src=\\\\|href=\\\\|import.*\\\\\\(jpg\\\\|jpeg\\\\|png\\\\|mp4\\\\|webm\\\\|gif\\\\\\)\")",
+      "Bash(xargs -0 grep -l \"dynamic\\\\|lazy\\\\|React.lazy\\\\|Suspense\")",
+      "Bash(xargs -0 grep -l \"ScrollTrigger\\\\|gsap\")"
+    ]
+  }
+}
