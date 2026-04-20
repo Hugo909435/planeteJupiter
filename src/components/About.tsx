@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -70,27 +71,20 @@ export default function About() {
           </Link>
         </div>
 
-        {/* Image placeholder */}
+        {/* Portrait */}
         <div
           ref={imageRef}
-          className="relative aspect-[3/4]"
+          className="relative aspect-[3/4] overflow-hidden"
           style={{ opacity: 0 }}
-          role="img"
-          aria-label="Portrait du vidéaste"
         >
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(160deg, #111 0%, #1a1a1a 50%, #0d0d0d 100%)',
-            }}
+          <Image
+            src="https://picsum.photos/seed/about-portrait/600/800"
+            alt="Portrait du vidéaste"
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 50vw, 100vw"
+            loading="lazy"
           />
-          {/* Replace this div with an actual portrait image */}
-          <div className="absolute inset-0 flex items-end p-8">
-            <p className="text-xs text-white/20 font-body tracking-wider">
-              Portrait à venir
-            </p>
-          </div>
           <div
             className="absolute inset-0 border border-white/5"
             aria-hidden="true"

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -68,24 +69,18 @@ export default function Showreel() {
         aria-label="Lancer le showreel Planète Jupiter"
         tabIndex={0}
       >
-        {/* Video placeholder */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(135deg, #080808 0%, #111111 35%, #0d0d0d 70%, #060606 100%)',
-          }}
-        >
-          {/* Subtle grid pattern */}
-          <div
-            className="absolute inset-0 opacity-5"
-            style={{
-              backgroundImage:
-                'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
-              backgroundSize: '80px 80px',
-            }}
-            aria-hidden="true"
+        {/* Poster image */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://picsum.photos/seed/showreel-poster/1920/1080"
+            alt="Showreel Planète Jupiter"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            loading="lazy"
           />
+          {/* Dark overlay so play button stays lisible */}
+          <div className="absolute inset-0 bg-black/55" aria-hidden="true" />
         </div>
 
         {/* Play button */}

@@ -3,6 +3,7 @@
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -16,6 +17,7 @@ interface Project {
   categorySlug: string
   description: string
   year: string
+  image: string
   // Editorial layout config — ignored when filtered
   cols: string      // tailwind col-span (desktop)
   aspect: string    // aspect-ratio class
@@ -31,6 +33,7 @@ const allProjects: Project[] = [
     categorySlug: 'mariage',
     description: 'Un film de mariage intimiste en Bretagne. Lumières naturelles, moments suspendus.',
     year: '2024',
+    image: 'https://picsum.photos/seed/pj-01/1200/900',
     cols:    'md:col-span-7',
     aspect:  'aspect-[4/3]',
     offset:  '',
@@ -43,6 +46,7 @@ const allProjects: Project[] = [
     categorySlug: 'clip',
     description: 'Direction artistique épurée. Noir, blanc, abstraction pure.',
     year: '2024',
+    image: 'https://picsum.photos/seed/pj-02/700/1050',
     cols:    'md:col-span-5',
     aspect:  'aspect-[2/3]',
     offset:  'md:mt-20',
@@ -55,6 +59,7 @@ const allProjects: Project[] = [
     categorySlug: 'corporate',
     description: "Identité visuelle d'une maison de couture parisienne. Intemporel.",
     year: '2023',
+    image: 'https://picsum.photos/seed/pj-03/750/1000',
     cols:    'md:col-span-4',
     aspect:  'aspect-[3/4]',
     offset:  '',
@@ -67,6 +72,7 @@ const allProjects: Project[] = [
     categorySlug: 'mariage',
     description: 'Cérémonie au Château de Vaux-le-Vicomte. Élégance absolue.',
     year: '2023',
+    image: 'https://picsum.photos/seed/pj-04/1600/1000',
     cols:    'md:col-span-8',
     aspect:  'aspect-[16/10]',
     offset:  'md:mt-10',
@@ -79,6 +85,7 @@ const allProjects: Project[] = [
     categorySlug: 'evenement',
     description: 'Soirée de gala. Atmosphère nocturne, lumières rares.',
     year: '2023',
+    image: 'https://picsum.photos/seed/pj-05/2100/900',
     cols:    'md:col-span-12',
     aspect:  'aspect-[21/9]',
     offset:  '',
@@ -91,6 +98,7 @@ const allProjects: Project[] = [
     categorySlug: 'clip',
     description: 'Abstraction visuelle pour un duo électro parisien.',
     year: '2022',
+    image: 'https://picsum.photos/seed/pj-06/800/1000',
     cols:    'md:col-span-5',
     aspect:  'aspect-[4/5]',
     offset:  'md:mt-16',
@@ -103,6 +111,7 @@ const allProjects: Project[] = [
     categorySlug: 'mariage',
     description: "Mariage dans le Luberon. Lumière d'été, douceur absolue.",
     year: '2022',
+    image: 'https://picsum.photos/seed/pj-07/1200/800',
     cols:    'md:col-span-7',
     aspect:  'aspect-[3/2]',
     offset:  '',
@@ -115,6 +124,7 @@ const allProjects: Project[] = [
     categorySlug: 'corporate',
     description: 'Film pour une maison de vins de Bourgogne. Lenteur et profondeur.',
     year: '2022',
+    image: 'https://picsum.photos/seed/pj-08/2100/900',
     cols:    'md:col-span-12',
     aspect:  'aspect-[16/7]',
     offset:  '',
@@ -163,22 +173,24 @@ function ProjectCard({
         }
       )
 
-      // Subtle parallax on image
-      gsap.fromTo(
-        imgRef.current,
-        { scale: 1.07, y: -8 },
-        {
-          scale: 1.0,
-          y: 8,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: 'top bottom',
-            end:   'bottom top',
-            scrub: 2.4,
-          },
-        }
-      )
+      // Parallax on desktop only
+      if (window.innerWidth >= 768) {
+        gsap.fromTo(
+          imgRef.current,
+          { scale: 1.07, y: -8 },
+          {
+            scale: 1.0,
+            y: 8,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: cardRef.current,
+              start: 'top bottom',
+              end:   'bottom top',
+              scrub: 2.4,
+            },
+          }
+        )
+      }
     })
     return () => ctx.revert()
   }, [index, editorial])
@@ -188,8 +200,6 @@ function ProjectCard({
   const aspectClass = editorial ? project.aspect  : (index % 3 === 0 ? 'aspect-[3/4]' : index % 3 === 1 ? 'aspect-[4/5]' : 'aspect-[16/9]')
   const offsetClass = editorial ? project.offset  : ''
   const textPos     = editorial ? project.textPos : 'below'
-
-  const gradient = `linear-gradient(${108 + index * 28}deg, #060606 0%, #141414 40%, #0a0a0a 100%)`
 
   return (
     <article
@@ -202,10 +212,17 @@ function ProjectCard({
         <div
           ref={imgRef}
           className="absolute inset-0 img-inner"
-          style={{ background: gradient }}
-          role="img"
-          aria-label={project.title}
-        />
+          style={{ transform: 'scale(1.07) translateY(-8px)' }}
+        >
+          <Image
+            src={project.image}
+            alt={`${project.title} — ${project.category}`}
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            loading="lazy"
+          />
+        </div>
         <div className="portfolio-card-overlay" />
 
         <span

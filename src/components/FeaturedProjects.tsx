@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -13,24 +14,28 @@ interface Project {
   category: string
   description: string
   year: string
+  image: string
   textStyle: 'overlay' | 'below'
 }
 
 const projects: Project[] = [
   {
-    id: 1, title: 'Les Deux Mondes',  category: 'Mariage',
+    id: 1, title: 'Les Deux Mondes', category: 'Mariage',
     description: 'Un film intimiste en Bretagne. Lumières naturelles, moments suspendus.',
     year: '2024', textStyle: 'overlay',
+    image: 'https://picsum.photos/seed/fp-mariage/800/1200',
   },
   {
     id: 2, title: 'Cosmos', category: 'Clip musical',
     description: "Direction artistique épurée. Noir, blanc, abstraction d'un monde intérieur.",
     year: '2024', textStyle: 'below',
+    image: 'https://picsum.photos/seed/fp-cosmos/1200/800',
   },
   {
     id: 3, title: 'La Maison Brune', category: 'Film de marque',
     description: "Identité visuelle d'une maison de couture parisienne. Intemporel.",
     year: '2023', textStyle: 'overlay',
+    image: 'https://picsum.photos/seed/fp-brand/2100/900',
   },
 ]
 
@@ -38,6 +43,12 @@ const LAYOUT = [
   { cols: 'md:col-span-5', aspect: 'aspect-[2/3]',  offset: '',        depth: 'far'  },
   { cols: 'md:col-span-7', aspect: 'aspect-[3/2]',  offset: 'md:mt-28', depth: 'near' },
   { cols: 'md:col-span-12',aspect: 'aspect-[21/9]', offset: 'md:-mt-4', depth: 'near' },
+]
+
+const SIZES = [
+  '(min-width: 768px) 42vw, 100vw',
+  '(min-width: 768px) 58vw, 100vw',
+  '100vw',
 ]
 
 interface CardProps { project: Project; index: number }
@@ -52,7 +63,6 @@ function ProjectCard({ project, index }: CardProps) {
     const ctx = gsap.context(() => {
       const isFar = depth === 'far'
 
-      // Card reveal — opacity + y + scale only (no blur: too expensive on mobile)
       gsap.fromTo(
         cardRef.current,
         { opacity: 0, y: isFar ? 64 : 48, scale: isFar ? 0.93 : 0.97 },
@@ -69,7 +79,6 @@ function ProjectCard({ project, index }: CardProps) {
         }
       )
 
-      // Parallax on desktop only — 3 simultaneous scrubs on mobile kills scroll performance
       if (window.innerWidth >= 768) {
         gsap.fromTo(
           imgRef.current,
@@ -89,7 +98,6 @@ function ProjectCard({ project, index }: CardProps) {
   }, [index, depth])
 
   const { cols, aspect, offset } = LAYOUT[index]
-  const gradient = `linear-gradient(${115 + index * 32}deg, #070707 0%, #151515 42%, #0b0b0b 100%)`
 
   return (
     <div
@@ -97,7 +105,6 @@ function ProjectCard({ project, index }: CardProps) {
       className={`group ${cols} ${offset}`}
       style={{ opacity: 0, willChange: 'transform, opacity' }}
     >
-      {/* ── Image ── */}
       <div
         className={`portfolio-card overflow-hidden w-full ${aspect}`}
         role="img"
@@ -105,15 +112,25 @@ function ProjectCard({ project, index }: CardProps) {
       >
         <div
           ref={imgRef}
-          className="absolute inset-0"
-          style={{ background: gradient, transform: 'scale(1.08) translateY(-10px)' }}
-        />
+          className="absolute inset-0 img-inner"
+          style={{ transform: 'scale(1.08) translateY(-10px)' }}
+        >
+          <Image
+            src={project.image}
+            alt={`${project.title} — ${project.category}`}
+            fill
+            className="object-cover"
+            sizes={SIZES[index]}
+            loading="lazy"
+          />
+        </div>
 
+        {/* Subtle scanline overlay */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-15"
+          className="absolute inset-0 pointer-events-none opacity-10"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px)',
+              'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px)',
             mixBlendMode: 'overlay',
           }}
           aria-hidden="true"
@@ -121,11 +138,10 @@ function ProjectCard({ project, index }: CardProps) {
 
         <div className="portfolio-card-overlay" />
 
-        <span className="absolute top-5 left-6 font-body text-xs text-white/14 tracking-widest" aria-hidden="true">
+        <span className="absolute top-5 left-6 font-body text-xs text-white/30 tracking-widest" aria-hidden="true">
           {String(index + 1).padStart(2, '0')}
         </span>
-
-        <span className="absolute top-5 right-6 font-body text-xs text-white/14" aria-hidden="true">
+        <span className="absolute top-5 right-6 font-body text-xs text-white/30" aria-hidden="true">
           {project.year}
         </span>
 
@@ -133,7 +149,7 @@ function ProjectCard({ project, index }: CardProps) {
           className="absolute bottom-5 right-6 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-700"
           aria-hidden="true"
         >
-          <span className="font-body text-sm text-white/45">→</span>
+          <span className="font-body text-sm text-white/60">→</span>
         </div>
 
         {project.textStyle === 'overlay' && (
@@ -168,10 +184,7 @@ function ProjectCard({ project, index }: CardProps) {
               {project.description}
             </p>
           </div>
-          <span
-            className="font-body text-white/18 group-hover:text-white/45 transition-colors duration-700 flex-shrink-0 mt-1"
-            aria-hidden="true"
-          >
+          <span className="font-body text-white/18 group-hover:text-white/45 transition-colors duration-700 flex-shrink-0 mt-1" aria-hidden="true">
             →
           </span>
         </div>
