@@ -159,6 +159,7 @@ export default function Hero() {
 
           const visualDiameter = Math.min(vw, vh) * (isSmall ? 0.78 : 0.84)
           const travel = vw + visualDiameter * (isSmall ? 1.35 : 1.55)
+          const orbitEdgeX = isSmall ? vw * 0.23 : travel * 0.5
           const orbitLength = vh * (isSmall ? 3.15 : 2.05)
           const verticalDistance = vh * (isSmall ? 0.24 : 0.30)
           const verticalScale = isSmall ? 0.74 : 0.68
@@ -218,8 +219,8 @@ export default function Hero() {
 
             x =
               phase < resetStart
-                ? gsap.utils.interpolate(isFirstOrbit ? 0 : -travel * 0.5, travel * 0.5, travelPhase)
-                : -travel * 0.5
+                ? gsap.utils.interpolate(isFirstOrbit ? 0 : -orbitEdgeX, orbitEdgeX, travelPhase)
+                : -orbitEdgeX
             y = orbitY + depthProgress * vh * (isSmall ? 0.12 : 0.16)
             scale = gsap.utils.interpolate(verticalScale * 0.92, isSmall ? 0.58 : 0.46, depthProgress)
             opacity = depthOpacity * wrapOpacity
@@ -229,14 +230,14 @@ export default function Hero() {
             const easedFinal = finalProgress < 0.5
               ? 4 * finalProgress * finalProgress * finalProgress
               : 1 - Math.pow(-2 * finalProgress + 2, 3) / 2
-            const finalStartX = -travel * (isSmall ? 0.42 : 0.5)
+            const finalStartX = -orbitEdgeX
             const finalStartY = vh * (isSmall ? 0.02 : 0.04)
             const finalStartScale = isSmall ? 0.58 : 0.5
 
             x = gsap.utils.interpolate(finalStartX, 0, easedFinal)
             y = gsap.utils.interpolate(finalStartY, 0, easedFinal)
             scale = gsap.utils.interpolate(finalStartScale, isSmall ? 0.64 : 0.56, easedFinal)
-            opacity = gsap.utils.interpolate(0.28, 0.66, easedFinal)
+            opacity = gsap.utils.interpolate(isSmall ? 0.42 : 0.28, 0.66, easedFinal)
           }
 
           const planetCenterX = vw * 0.5 + x
@@ -245,18 +246,20 @@ export default function Hero() {
           const occluders = document.querySelectorAll<HTMLElement>('[data-planet-occluder]')
           let imageOverlap = 0
 
-          occluders.forEach((occluder) => {
-            const rect = occluder.getBoundingClientRect()
-            if (rect.bottom <= 0 || rect.top >= vh || rect.right <= 0 || rect.left >= vw) return
+          if (!isSmall) {
+            occluders.forEach((occluder) => {
+              const rect = occluder.getBoundingClientRect()
+              if (rect.bottom <= 0 || rect.top >= vh || rect.right <= 0 || rect.left >= vw) return
 
-            const nearestX = gsap.utils.clamp(rect.left, rect.right, planetCenterX)
-            const nearestY = gsap.utils.clamp(rect.top, rect.bottom, planetCenterY)
-            const distance = Math.hypot(planetCenterX - nearestX, planetCenterY - nearestY)
-            const influence = gsap.utils.clamp(0, 1, 1 - distance / (planetRadius + 120))
-            imageOverlap = Math.max(imageOverlap, influence)
-          })
+              const nearestX = gsap.utils.clamp(rect.left, rect.right, planetCenterX)
+              const nearestY = gsap.utils.clamp(rect.top, rect.bottom, planetCenterY)
+              const distance = Math.hypot(planetCenterX - nearestX, planetCenterY - nearestY)
+              const influence = gsap.utils.clamp(0, 1, 1 - distance / (planetRadius + 120))
+              imageOverlap = Math.max(imageOverlap, influence)
+            })
+          }
 
-          opacity *= gsap.utils.interpolate(1, isSmall ? 0.45 : 0.08, imageOverlap * (1 - finalProgress))
+          opacity *= gsap.utils.interpolate(1, 0.08, imageOverlap * (1 - finalProgress))
 
           if (finalProgress >= 0.995) {
             gsap.set(planetFrame, { x: 0, y: 0, scaleX: scale, scaleY: scale, opacity: 0.66 })
