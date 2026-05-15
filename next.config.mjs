@@ -1,16 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   images: {
-    formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      { protocol: 'https', hostname: 'picsum.photos' },
-      { protocol: 'https', hostname: 'fastly.picsum.photos' },
-    ],
+    unoptimized: true,
   },
-  // Bundle only what's needed per route
-  experimental: {
-    optimizePackageImports: ['gsap', 'three'],
-  },
-}
+};
 
-export default nextConfig
+export default nextConfig;
