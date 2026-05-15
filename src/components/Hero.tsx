@@ -78,6 +78,7 @@ export default function Hero() {
     let cleanupPlanetOrbit: (() => void) | undefined
 
     const ctx = gsap.context(() => {
+      const isMobileViewport = window.innerWidth < 640
 
       // ── ENTRANCE ──
       const tl = gsap.timeline({ delay: 0.4 })
@@ -135,8 +136,12 @@ export default function Hero() {
 
       // ── CAMERA ──
       gsap.to(camState.current, {
-        posX: CAM_END.posX, posY: getResponsiveY(CAM_END.posY), posZ: getResponsiveZ(CAM_END.posZ),
-        lightX: CAM_END.lightX, lightY: CAM_END.lightY, lightZ: CAM_END.lightZ,
+        posX: isMobileViewport ? 0 : CAM_END.posX,
+        posY: isMobileViewport ? getResponsiveY(CAM_INIT.posY) : getResponsiveY(CAM_END.posY),
+        posZ: isMobileViewport ? getResponsiveZ(CAM_INIT.posZ) : getResponsiveZ(CAM_END.posZ),
+        lightX: isMobileViewport ? CAM_INIT.lightX : CAM_END.lightX,
+        lightY: isMobileViewport ? CAM_INIT.lightY : CAM_END.lightY,
+        lightZ: isMobileViewport ? CAM_INIT.lightZ : CAM_END.lightZ,
         ease: 'power1.inOut',
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -171,26 +176,13 @@ export default function Hero() {
           const finalProgress = gsap.utils.clamp(0, 1, (scrollY - finalStart) / Math.max(maxScroll - finalStart, 1))
 
           if (isSmall) {
-            const progress = gsap.utils.clamp(0, 1, scrollY / maxScroll)
-            const introProgress = gsap.utils.clamp(0, 1, scrollY / (vh * 0.58))
-            const finalProgress = gsap.utils.clamp(0, 1, (progress - 0.78) / 0.22)
-            const introEase = 1 - Math.pow(1 - introProgress, 2)
-            const finalEase = finalProgress < 0.5
-              ? 4 * finalProgress * finalProgress * finalProgress
-              : 1 - Math.pow(-2 * finalProgress + 2, 3) / 2
-
-            let y = introEase * vh * 0.12
-            let scale = gsap.utils.interpolate(0.92, 0.66, introEase)
-            let opacity = gsap.utils.interpolate(1, 0.62, introEase)
-
-            y = gsap.utils.interpolate(y, 0, finalEase)
-            scale = gsap.utils.interpolate(scale, 0.68, finalEase)
-            opacity = gsap.utils.interpolate(opacity, 0.72, finalEase)
-
-            gsap.set(planetFrame, { x: 0, opacity })
-            yTo(y)
-            scaleXTo(scale)
-            scaleYTo(scale)
+            gsap.set(planetFrame, {
+              x: 0,
+              y: 0,
+              scaleX: 1,
+              scaleY: 1,
+              opacity: 1,
+            })
             return
           }
 
