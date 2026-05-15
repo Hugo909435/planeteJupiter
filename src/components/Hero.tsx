@@ -170,6 +170,68 @@ export default function Hero() {
           const finalStart = Math.max(orbitStart + orbitLength * 0.5, maxScroll - vh * (isSmall ? 0.95 : 1.05))
           const finalProgress = gsap.utils.clamp(0, 1, (scrollY - finalStart) / Math.max(maxScroll - finalStart, 1))
 
+          if (isSmall) {
+            const mobileIntroEnd = vh * 0.42
+            const mobileRecenterEnd = mobileIntroEnd + vh * 0.2
+            const mobileFinalStart = Math.max(mobileRecenterEnd + vh * 0.9, maxScroll - vh * 0.92)
+            const mobileFinalProgress = gsap.utils.clamp(
+              0,
+              1,
+              (scrollY - mobileFinalStart) / Math.max(maxScroll - mobileFinalStart, 1)
+            )
+            let x = 0
+            let y = 0
+            let scale = 1
+            let opacity = 1
+
+            if (scrollY < mobileIntroEnd) {
+              const progress = gsap.utils.clamp(0, 1, scrollY / mobileIntroEnd)
+              const eased = 1 - Math.pow(1 - progress, 2)
+
+              y = eased * vh * 0.18
+              scale = gsap.utils.interpolate(1, 0.76, eased)
+              opacity = gsap.utils.interpolate(1, 0.82, eased)
+            } else if (scrollY < mobileRecenterEnd) {
+              const progress = gsap.utils.clamp(0, 1, (scrollY - mobileIntroEnd) / (mobileRecenterEnd - mobileIntroEnd))
+              const eased = progress < 0.5
+                ? 4 * progress * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2
+
+              y = gsap.utils.interpolate(vh * 0.18, 0, eased)
+              scale = gsap.utils.interpolate(0.76, 0.68, eased)
+              opacity = gsap.utils.interpolate(0.82, 0.56, eased)
+            } else {
+              const driftRange = Math.max(mobileFinalStart - mobileRecenterEnd, 1)
+              const driftProgress = gsap.utils.clamp(0, 1, (scrollY - mobileRecenterEnd) / driftRange)
+
+              x = Math.sin(driftProgress * Math.PI * 1.35) * vw * 0.08
+              y = Math.sin(driftProgress * Math.PI) * vh * 0.035
+              scale = gsap.utils.interpolate(0.68, 0.58, driftProgress)
+              opacity = gsap.utils.interpolate(0.56, 0.44, driftProgress)
+            }
+
+            if (mobileFinalProgress > 0) {
+              const easedFinal = mobileFinalProgress < 0.5
+                ? 4 * mobileFinalProgress * mobileFinalProgress * mobileFinalProgress
+                : 1 - Math.pow(-2 * mobileFinalProgress + 2, 3) / 2
+
+              x = gsap.utils.interpolate(-vw * 0.18, 0, easedFinal)
+              y = gsap.utils.interpolate(vh * 0.02, 0, easedFinal)
+              scale = gsap.utils.interpolate(0.58, 0.64, easedFinal)
+              opacity = gsap.utils.interpolate(0.48, 0.66, easedFinal)
+            }
+
+            if (mobileFinalProgress >= 0.995) {
+              gsap.set(planetFrame, { x: 0, y: 0, scaleX: 0.64, scaleY: 0.64, opacity: 0.66 })
+            } else {
+              gsap.set(planetFrame, { x, opacity })
+              yTo(y)
+              scaleXTo(scale)
+              scaleYTo(scale)
+            }
+            return
+          }
+
           let x = 0
           let y = 0
           let scale = 1
