@@ -74,6 +74,7 @@ export default function About() {
         {/* Portrait */}
         <div
           ref={imageRef}
+          data-planet-occluder
           className="relative aspect-[3/4] overflow-hidden"
           style={{ opacity: 0 }}
         >

@@ -21,14 +21,16 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="relative">
       <Navigation />
       <Hero />
-      <FeaturedProjects />
-      <Showreel />
-      <About />
-      <ContactCTA />
-      <Footer />
+      <div className="relative z-10">
+        <FeaturedProjects />
+        <Showreel />
+        <About />
+        <ContactCTA />
+        <Footer />
+      </div>
     </main>
   )
 }

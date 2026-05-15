@@ -40,6 +40,7 @@ function getResponsiveY(base: number): number {
 
 export default function Hero() {
   const sectionRef    = useRef<HTMLElement>(null)
+  const planetFrameRef = useRef<HTMLDivElement>(null)
   const planetWrapRef = useRef<HTMLDivElement>(null)
   const textRef       = useRef<HTMLDivElement>(null)
   const subtitleRef   = useRef<HTMLParagraphElement>(null)
@@ -74,14 +75,16 @@ export default function Hero() {
   }, [])
 
   useEffect(() => {
+    let cleanupPlanetOrbit: (() => void) | undefined
+
     const ctx = gsap.context(() => {
 
       // ── ENTRANCE ──
       const tl = gsap.timeline({ delay: 0.4 })
 
       tl.fromTo(planetWrapRef.current,
-        { scale: 0.88 },
-        { scale: 1, duration: 4.5, ease: 'power2.out' }
+        { scaleX: 0.88, scaleY: 0.88 },
+        { scaleX: 1, scaleY: 1, duration: 4.5, ease: 'power2.out' }
       )
       .to(overlayRef.current,
         { opacity: 0, duration: 3.8, ease: 'power2.inOut' },
@@ -141,6 +144,137 @@ export default function Hero() {
         },
       })
 
+      const planetFrame = planetFrameRef.current
+      if (planetFrame) {
+        const yTo = gsap.quickTo(planetFrame, 'y', { duration: 0.9, ease: 'power3.out' })
+        const scaleXTo = gsap.quickTo(planetFrame, 'scaleX', { duration: 1.0, ease: 'power3.out' })
+        const scaleYTo = gsap.quickTo(planetFrame, 'scaleY', { duration: 1.0, ease: 'power3.out' })
+
+        const updatePlanetOrbit = () => {
+          const scrollY = window.scrollY
+          const maxScroll = Math.max(ScrollTrigger.maxScroll(window), 1)
+          const vw = window.innerWidth
+          const vh = window.innerHeight
+          const isSmall = vw < 640
+
+          const visualDiameter = Math.min(vw, vh) * (isSmall ? 0.78 : 0.84)
+          const travel = vw + visualDiameter * 1.55
+          const orbitLength = vh * (isSmall ? 2.35 : 2.05)
+          const verticalDistance = vh * (isSmall ? 0.24 : 0.30)
+          const verticalScale = isSmall ? 0.74 : 0.68
+          const verticalEnd = vh * (isSmall ? 0.42 : 0.5)
+          const handoffLength = vh * 0.18
+          const orbitY = vh * (isSmall ? 0.02 : 0.04)
+          const orbitStart = verticalEnd + handoffLength
+          const finalStart = Math.max(orbitStart + orbitLength * 0.5, maxScroll - vh * (isSmall ? 0.95 : 1.05))
+          const finalProgress = gsap.utils.clamp(0, 1, (scrollY - finalStart) / Math.max(maxScroll - finalStart, 1))
+
+          let x = 0
+          let y = 0
+          let scale = 1
+          let opacity = 1
+
+          if (scrollY < verticalEnd) {
+            const verticalProgress = gsap.utils.clamp(0, 1, scrollY / verticalEnd)
+            const eased = 1 - Math.pow(1 - verticalProgress, 2)
+
+            y = eased * verticalDistance
+            scale = gsap.utils.interpolate(1, verticalScale, eased)
+            opacity = gsap.utils.interpolate(1, 0.82, eased)
+          } else if (scrollY < orbitStart) {
+            const handoffProgress = gsap.utils.clamp(0, 1, (scrollY - verticalEnd) / handoffLength)
+            const eased = handoffProgress < 0.5
+              ? 4 * handoffProgress * handoffProgress * handoffProgress
+              : 1 - Math.pow(-2 * handoffProgress + 2, 3) / 2
+
+            x = 0
+            y = gsap.utils.interpolate(verticalDistance, orbitY, eased)
+            scale = gsap.utils.interpolate(verticalScale, verticalScale * 0.92, eased)
+            opacity = gsap.utils.interpolate(0.82, 0.76, eased)
+          } else {
+            const orbitScroll = scrollY - orbitStart
+            const depthProgress = gsap.utils.clamp(0, 1, orbitScroll / Math.max(maxScroll - orbitStart, 1))
+            const phase = (orbitScroll / orbitLength) % 1
+            const isFirstOrbit = orbitScroll < orbitLength
+            const depthOpacity = gsap.utils.interpolate(0.76, 0.42, depthProgress)
+            const exitStart = 0.78
+            const exitEnd = 0.9
+            const enterEnd = 0.12
+            const resetStart = 0.9
+            const visiblePhase = gsap.utils.clamp(0, 1, phase / exitStart)
+            const wrapOpacity = isFirstOrbit
+              ? phase < exitStart
+                ? 1
+                : phase < exitEnd
+                  ? gsap.utils.mapRange(exitStart, exitEnd, 1, 0, phase)
+                  : 0
+              : phase < enterEnd
+                ? gsap.utils.mapRange(0, enterEnd, 0.18, 1, phase)
+                : phase < exitStart
+                  ? 1
+                  : phase < exitEnd
+                    ? gsap.utils.mapRange(exitStart, exitEnd, 1, 0, phase)
+                    : 0
+
+            x =
+              phase < resetStart
+                ? gsap.utils.interpolate(isFirstOrbit ? 0 : -travel * 0.5, travel * 0.5, visiblePhase)
+                : -travel * 0.5
+            y = orbitY + depthProgress * vh * (isSmall ? 0.12 : 0.16)
+            scale = gsap.utils.interpolate(verticalScale * 0.92, isSmall ? 0.58 : 0.46, depthProgress)
+            opacity = depthOpacity * wrapOpacity
+          }
+
+          if (finalProgress > 0) {
+            const easedFinal = finalProgress < 0.5
+              ? 4 * finalProgress * finalProgress * finalProgress
+              : 1 - Math.pow(-2 * finalProgress + 2, 3) / 2
+
+            x = gsap.utils.interpolate(x, 0, easedFinal)
+            y = gsap.utils.interpolate(y, 0, easedFinal)
+            scale = gsap.utils.interpolate(scale, isSmall ? 0.64 : 0.56, easedFinal)
+            opacity = gsap.utils.interpolate(opacity, 0.66, easedFinal)
+          }
+
+          const planetCenterX = vw * 0.5 + x
+          const planetCenterY = vh * 0.5 + y
+          const planetRadius = visualDiameter * scale * 0.38
+          const occluders = document.querySelectorAll<HTMLElement>('[data-planet-occluder]')
+          let imageOverlap = 0
+
+          occluders.forEach((occluder) => {
+            const rect = occluder.getBoundingClientRect()
+            if (rect.bottom <= 0 || rect.top >= vh || rect.right <= 0 || rect.left >= vw) return
+
+            const nearestX = gsap.utils.clamp(rect.left, rect.right, planetCenterX)
+            const nearestY = gsap.utils.clamp(rect.top, rect.bottom, planetCenterY)
+            const distance = Math.hypot(planetCenterX - nearestX, planetCenterY - nearestY)
+            const influence = gsap.utils.clamp(0, 1, 1 - distance / (planetRadius + 120))
+            imageOverlap = Math.max(imageOverlap, influence)
+          })
+
+          opacity *= gsap.utils.interpolate(1, 0.08, imageOverlap * (1 - finalProgress))
+
+          gsap.set(planetFrame, { x, opacity })
+          yTo(y)
+          scaleXTo(scale)
+          scaleYTo(scale)
+        }
+
+        const orbitTrigger = ScrollTrigger.create({
+          start: 0,
+          end: 'max',
+          onUpdate: updatePlanetOrbit,
+          onRefresh: updatePlanetOrbit,
+        })
+        window.addEventListener('resize', updatePlanetOrbit, { passive: true })
+        cleanupPlanetOrbit = () => {
+          window.removeEventListener('resize', updatePlanetOrbit)
+          orbitTrigger.kill()
+        }
+        updatePlanetOrbit()
+      }
+
       // ── TEXT FADE ──
       gsap.fromTo(textRef.current,
         { opacity: 1, y: 0, immediateRender: false },
@@ -148,19 +282,7 @@ export default function Hero() {
           opacity: 0, y: -44, ease: 'power1.in',
           scrollTrigger: {
             trigger: sectionRef.current,
-            start: 'top top', end: '26% top', scrub: 1.4,
-          },
-        }
-      )
-
-      // ── PLANET FADE ──
-      gsap.fromTo(planetWrapRef.current,
-        { opacity: 1, immediateRender: false },
-        {
-          opacity: 0, ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: '85% top', end: 'bottom top', scrub: 1.0,
+            start: 'top top', end: '18% top', scrub: 1.0,
           },
         }
       )
@@ -168,6 +290,7 @@ export default function Hero() {
     })
 
     return () => {
+      cleanupPlanetOrbit?.()
       ctx.revert()
       document.body.style.overflow = ''
     }
@@ -178,21 +301,28 @@ export default function Hero() {
       ref={sectionRef}
       id="hero"
       className="relative"
-      style={{ height: '250vh' }}
+      style={{ height: '175vh' }}
       aria-label="Planète Jupiter — Vidéaste"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 
         {/* Pure black void */}
-        <div className="absolute inset-0 bg-black" aria-hidden="true" />
+        <div className="absolute inset-0 bg-black" style={{ zIndex: 0 }} aria-hidden="true" />
 
-        {/* Planet — full viewport Three.js canvas */}
+        {/* Planet — fixed background Three.js canvas */}
         <div
-          ref={planetWrapRef}
-          className="absolute inset-0"
-          style={{ willChange: 'transform, opacity' }}
+          ref={planetFrameRef}
+          data-orbiting-planet
+          className="fixed inset-0 pointer-events-none"
+          style={{ zIndex: 1, willChange: 'transform, opacity' }}
         >
-          <JupiterPlanet camState={camState} mouse={mouse} />
+          <div
+            ref={planetWrapRef}
+            className="absolute inset-0"
+            style={{ willChange: 'transform, opacity' }}
+          >
+            <JupiterPlanet camState={camState} mouse={mouse} />
+          </div>
         </div>
 
         {/* Film grain — cinematic texture layer */}
@@ -204,27 +334,6 @@ export default function Hero() {
             backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
             backgroundSize: '160px 160px',
             mixBlendMode: 'overlay',
-          }}
-          aria-hidden="true"
-        />
-
-        {/* Vignette — edge darkening */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            zIndex: 4,
-            background: 'radial-gradient(ellipse 120% 120% at 50% 48%, transparent 28%, rgba(0,0,0,0.82) 100%)',
-          }}
-          aria-hidden="true"
-        />
-
-        {/* Bottom depth gradient */}
-        <div
-          className="absolute bottom-0 left-0 right-0 pointer-events-none"
-          style={{
-            zIndex: 4,
-            height: '38%',
-            background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
           }}
           aria-hidden="true"
         />

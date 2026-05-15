@@ -12,7 +12,8 @@
       "Bash(find \"C:\\\\Users\\\\hbeignon\\\\Desktop\\\\planjupi\\\\src\" -type f \\\\\\( -name \"*.tsx\" -o -name \"*.ts\" \\\\\\) -exec wc -l {} +)",
       "Bash(xargs -0 grep -l \"src=\\\\|href=\\\\|import.*\\\\\\(jpg\\\\|jpeg\\\\|png\\\\|mp4\\\\|webm\\\\|gif\\\\\\)\")",
       "Bash(xargs -0 grep -l \"dynamic\\\\|lazy\\\\|React.lazy\\\\|Suspense\")",
-      "Bash(xargs -0 grep -l \"ScrollTrigger\\\\|gsap\")"
+      "Bash(xargs -0 grep -l \"ScrollTrigger\\\\|gsap\")",
+      "Bash(npm run *)"
     ]
   }
 }

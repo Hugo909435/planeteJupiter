@@ -106,6 +106,7 @@ function ProjectCard({ project, index }: CardProps) {
       style={{ opacity: 0, willChange: 'transform, opacity' }}
     >
       <div
+        data-planet-occluder
         className={`portfolio-card overflow-hidden w-full ${aspect}`}
         role="img"
         aria-label={`${project.title} — ${project.category}`}

@@ -61,6 +61,7 @@ export default function Showreel() {
 
       <div
         ref={wrapRef}
+        data-planet-occluder
         className="relative w-full cursor-pointer group"
         style={{ opacity: 0, aspectRatio: '16/9' }}
         onMouseEnter={() => setHovered(true)}
