@@ -23,10 +23,12 @@ const CAM_END: CamState = {
   lightX: -0.58, lightY: 0.52, lightZ: 0.98,
 }
 
+const MOBILE_BREAKPOINT = 768
+
 // Scale camera Z based on viewport width so the planet isn't overwhelming on mobile
 function getResponsiveZ(base: number): number {
   if (typeof window === 'undefined') return base
-  if (window.innerWidth < 640)  return base * 1.625  // mobile  → ~6.5 / ~5.0
+  if (window.innerWidth < MOBILE_BREAKPOINT) return base * 1.625  // mobile  → ~6.5 / ~5.0
   if (window.innerWidth < 1024) return base * 1.25   // tablet  → ~5.0 / ~3.9
   return base
 }
@@ -34,7 +36,7 @@ function getResponsiveZ(base: number): number {
 // Lower camera on mobile so the planet sits higher in the frame
 function getResponsiveY(base: number): number {
   if (typeof window === 'undefined') return base
-  if (window.innerWidth < 640) return base - 0.10
+  if (window.innerWidth < MOBILE_BREAKPOINT) return base - 0.10
   return base
 }
 
@@ -78,18 +80,26 @@ export default function Hero() {
     let cleanupPlanetOrbit: (() => void) | undefined
 
     const ctx = gsap.context(() => {
-      const isMobileViewport = window.innerWidth < 640
+      const isMobileViewport = window.innerWidth < MOBILE_BREAKPOINT
 
       // ── ENTRANCE ──
+      if (isMobileViewport) {
+        gsap.set(planetWrapRef.current, { clearProps: 'transform', scaleX: 1, scaleY: 1 })
+        gsap.set(planetFrameRef.current, { clearProps: 'transform', x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1 })
+      }
+
       const tl = gsap.timeline({ delay: 0.4 })
 
-      tl.fromTo(planetWrapRef.current,
-        { scaleX: 0.88, scaleY: 0.88 },
-        { scaleX: 1, scaleY: 1, duration: 4.5, ease: 'power2.out' }
-      )
-      .to(overlayRef.current,
+      if (!isMobileViewport) {
+        tl.fromTo(planetWrapRef.current,
+          { scaleX: 0.88, scaleY: 0.88 },
+          { scaleX: 1, scaleY: 1, duration: 4.5, ease: 'power2.out' }
+        )
+      }
+
+      tl.to(overlayRef.current,
         { opacity: 0, duration: 3.8, ease: 'power2.inOut' },
-        0.8
+        isMobileViewport ? 0 : 0.8
       )
       .fromTo(subtitleRef.current,
         { opacity: 0, letterSpacing: '0.55em' },
@@ -160,7 +170,7 @@ export default function Hero() {
           const maxScroll = Math.max(ScrollTrigger.maxScroll(window), 1)
           const vw = window.innerWidth
           const vh = window.innerHeight
-          const isSmall = vw < 640
+          const isSmall = vw < MOBILE_BREAKPOINT
 
           const visualDiameter = Math.min(vw, vh) * (isSmall ? 0.78 : 0.84)
           const travel = vw + visualDiameter * (isSmall ? 1.35 : 1.55)
@@ -340,7 +350,12 @@ export default function Hero() {
           ref={planetFrameRef}
           data-orbiting-planet
           className="fixed inset-0 pointer-events-none"
-          style={{ zIndex: 1, willChange: 'transform, opacity' }}
+          style={{
+            zIndex: 1,
+            willChange: 'transform, opacity',
+            bottom: 'auto',
+            height: '100svh',
+          }}
         >
           <div
             ref={planetWrapRef}
