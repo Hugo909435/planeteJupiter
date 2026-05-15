@@ -158,8 +158,8 @@ export default function Hero() {
           const isSmall = vw < 640
 
           const visualDiameter = Math.min(vw, vh) * (isSmall ? 0.78 : 0.84)
-          const travel = vw + visualDiameter * 1.55
-          const orbitLength = vh * (isSmall ? 2.35 : 2.05)
+          const travel = vw + visualDiameter * (isSmall ? 1.35 : 1.55)
+          const orbitLength = vh * (isSmall ? 3.15 : 2.05)
           const verticalDistance = vh * (isSmall ? 0.24 : 0.30)
           const verticalScale = isSmall ? 0.74 : 0.68
           const verticalEnd = vh * (isSmall ? 0.42 : 0.5)
@@ -197,11 +197,11 @@ export default function Hero() {
             const phase = (orbitScroll / orbitLength) % 1
             const isFirstOrbit = orbitScroll < orbitLength
             const depthOpacity = gsap.utils.interpolate(0.76, 0.42, depthProgress)
-            const exitStart = 0.78
-            const exitEnd = 0.9
-            const enterEnd = 0.12
-            const resetStart = 0.9
-            const visiblePhase = gsap.utils.clamp(0, 1, phase / exitStart)
+            const exitStart = isSmall ? 0.72 : 0.78
+            const exitEnd = isSmall ? 0.92 : 0.9
+            const enterEnd = isSmall ? 0.2 : 0.12
+            const resetStart = exitEnd
+            const travelPhase = gsap.utils.clamp(0, 1, phase / exitEnd)
             const wrapOpacity = isFirstOrbit
               ? phase < exitStart
                 ? 1
@@ -218,7 +218,7 @@ export default function Hero() {
 
             x =
               phase < resetStart
-                ? gsap.utils.interpolate(isFirstOrbit ? 0 : -travel * 0.5, travel * 0.5, visiblePhase)
+                ? gsap.utils.interpolate(isFirstOrbit ? 0 : -travel * 0.5, travel * 0.5, travelPhase)
                 : -travel * 0.5
             y = orbitY + depthProgress * vh * (isSmall ? 0.12 : 0.16)
             scale = gsap.utils.interpolate(verticalScale * 0.92, isSmall ? 0.58 : 0.46, depthProgress)
@@ -229,11 +229,14 @@ export default function Hero() {
             const easedFinal = finalProgress < 0.5
               ? 4 * finalProgress * finalProgress * finalProgress
               : 1 - Math.pow(-2 * finalProgress + 2, 3) / 2
+            const finalStartX = -travel * (isSmall ? 0.42 : 0.5)
+            const finalStartY = vh * (isSmall ? 0.02 : 0.04)
+            const finalStartScale = isSmall ? 0.58 : 0.5
 
-            x = gsap.utils.interpolate(x, 0, easedFinal)
-            y = gsap.utils.interpolate(y, 0, easedFinal)
-            scale = gsap.utils.interpolate(scale, isSmall ? 0.64 : 0.56, easedFinal)
-            opacity = gsap.utils.interpolate(opacity, 0.66, easedFinal)
+            x = gsap.utils.interpolate(finalStartX, 0, easedFinal)
+            y = gsap.utils.interpolate(finalStartY, 0, easedFinal)
+            scale = gsap.utils.interpolate(finalStartScale, isSmall ? 0.64 : 0.56, easedFinal)
+            opacity = gsap.utils.interpolate(0.28, 0.66, easedFinal)
           }
 
           const planetCenterX = vw * 0.5 + x
@@ -253,12 +256,16 @@ export default function Hero() {
             imageOverlap = Math.max(imageOverlap, influence)
           })
 
-          opacity *= gsap.utils.interpolate(1, 0.08, imageOverlap * (1 - finalProgress))
+          opacity *= gsap.utils.interpolate(1, isSmall ? 0.45 : 0.08, imageOverlap * (1 - finalProgress))
 
-          gsap.set(planetFrame, { x, opacity })
-          yTo(y)
-          scaleXTo(scale)
-          scaleYTo(scale)
+          if (finalProgress >= 0.995) {
+            gsap.set(planetFrame, { x: 0, y: 0, scaleX: scale, scaleY: scale, opacity: 0.66 })
+          } else {
+            gsap.set(planetFrame, { x, opacity })
+            yTo(y)
+            scaleXTo(scale)
+            scaleYTo(scale)
+          }
         }
 
         const orbitTrigger = ScrollTrigger.create({
